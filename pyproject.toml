@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ae_semantic_navigation"
+version = "0.1.0"
+description = "A semantic navigation solution utilizing several other packages, e.g. Semantic Navigation Primitives (SNPs), Path embeddings and LLM high level decisions."
+authors = [{ name = "Arturs Elksnis" }]
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "zmq",
+    "ultralytics"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
