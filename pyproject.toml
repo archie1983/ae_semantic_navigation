@@ -14,8 +14,12 @@ dependencies = [
     "numpy",
     "matplotlib",
     "zmq",
-    "ultralytics"
+    "ultralytics",
+    "importlib"
 ]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+ae_semantic_navigation = ["models/*.pt"]

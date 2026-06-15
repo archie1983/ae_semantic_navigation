@@ -2,7 +2,7 @@ import zmq, os, cv2
 import numpy as np
 from PIL import Image
 from ae_path_compare import PathCompare
-from ultralytics import YOLO
+from ae_semantic_navigation import YoloObjectDetector
 
 class SemanticNavigationServer:
 	def __init__(self, port=5555, use_dino = True):
@@ -10,13 +10,8 @@ class SemanticNavigationServer:
 		self.port = port
 		self.use_dino = use_dino
 
-		# YOLO part
-		# Load the exported TensorRT model
-		#self.item_extractor_model = YOLO("item_extract_ae.engine")
-		self.item_extractor_model = YOLO("item_extract_ae.pt")
-
-		# Run inference
-		#results = trt_model("images/test/h_520_expl_2_120_15.png")
+		# Yolo item detector
+		self.yolo_object_detector = YoloObjectDetector()
 
 		# Set up ZeroMQ with REP (REPly) socket
 		self.context = zmq.Context()
@@ -96,25 +91,8 @@ class SemanticNavigationServer:
 				#for k, v in self.path_refs.items():
 				#	cmp_res = self.pc.compare_paths(v, pil_images)
 			elif (data['action'] == 'detect_objects_in_image'):
-				# 2. Process the images
-				received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
-				received_img = received_array.reshape(data['shape'])[0]
-				# get x images from the received (x, 64, 64, 3) tensor. This will be our path to compare
-				pil_image = Image.fromarray(received_img)
+				response = self.yolo_object_detector.detect_objects_in_image(data)
 
-				item_extractor_res = self.item_extractor_model(pil_image)
-
-				# print("AE Classes: ", item_extractor_res[0].boxes.cls)
-				# print("AE Classes1: ", item_extractor_res[0].names)
-				# print("AE All: ", item_extractor_res[0].boxes)
-
-				item_names = [item_extractor_res[0].names[int(item)] for item in item_extractor_res[0].boxes.cls]
-				#print("item_names: ", item_names)
-
-				response = {
-					'item_names': item_names,
-					'success': True
-				}
 			self.socket.send_pyobj(response)
 
 
