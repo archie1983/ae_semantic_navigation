@@ -1,25 +1,25 @@
-import zmq, os, cv2
-import numpy as np
-from PIL import Image
-from ae_path_compare import PathCompare
-from ae_semantic_navigation import YoloObjectDetector
+import zmq
+from ae_semantic_navigation import YoloObjectDetector, PathComparator
+
+from src.ae_semantic_navigation import LLMDecisions
+
 
 class SemanticNavigationServer:
 	def __init__(self, port=5555, use_dino = True):
-		self.pc = PathCompare(use_dino)
-		self.port = port
-		self.use_dino = use_dino
-
+		# Path comparator
+		self.path_comparator = PathComparator(use_dino)
 		# Yolo item detector
 		self.yolo_object_detector = YoloObjectDetector()
+		# LLM decisions' maker
+		self.llm_decisions = LLMDecisions()
 
 		# Set up ZeroMQ with REP (REPly) socket
+		self.port = port
 		self.context = zmq.Context()
 		self.socket = self.context.socket(zmq.REP)  # Changed from PULL to REP
 		self.socket.bind(f"tcp://*:{self.port}")
 
 		print(f"Path Compare server running on port {self.port}, waiting for images...")
-		self.path_refs = {}
 
 	# def __init__(self, path_compare_instance, image_port=5555, response_port=5556):
 	# 	self.pc = path_compare_instance
@@ -40,58 +40,21 @@ class SemanticNavigationServer:
 			# 1. Receive the image data
 			data = self.socket.recv_pyobj()  # This BLOCKS until a request arrives
 
-			if (data['action'] == 'store_ref_path'):
-				# 2. Process the images
-				received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
-				received_images = received_array.reshape(data['shape'])
-				pil_images = [Image.fromarray(img) for img in received_images]
-				path_id = data['path_id']
-				self.path_refs[path_id] = pil_images
-				# Send the response back
-				response = {
-					'success': True
-				}
-				## debug
-				path_id = str(path_id)
-				os.makedirs(path_id, exist_ok=True)
-				cnt = 0
-				for img in received_images:
-					cnt += 1
-					cv2.imwrite(os.path.join(path_id, str(cnt) + ".png"), img)
-				## /debug
-
-			elif(data['action'] == 'qry_path_similarity'):
-				# 2. Process the images
-				received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
-				received_images = received_array.reshape(data['shape'])
-				# get x images from the received (x, 64, 64, 3) tensor. This will be our path to compare
-				pil_images = [Image.fromarray(img) for img in received_images]
-				# compare that path against all reference paths
-				if self.use_dino:
-					cmp_res = {k: float(self.pc.compare_paths_mean(v, pil_images)) for k, v in self.path_refs.items()}
+			if (data['module'] == 'yolo_object_detector'):
+				if (data['action'] == 'detect_objects_in_image'):
+					response = self.yolo_object_detector.detect_objects_in_image(data)
 				else:
-					cmp_res = {k: self.pc.fit_cur_path_to_ref_path(v, pil_images)[1] for k, v in self.path_refs.items()}
-
-				#print(cmp_res)
-				# find the best match and return both the score and the reference match buffer
-				best_match = max(cmp_res.items(), key=lambda k: k[1])
-				response = {
-					'best_match_ref': best_match[0],
-					'best_match_score': best_match[1],
-					'success': True
-				}
-				## debug
-				path_id = "tmp_cmp"
-				os.makedirs(path_id, exist_ok=True)
-				cnt = 0
-				for img in received_images:
-					cnt += 1
-					cv2.imwrite(os.path.join(path_id, str(cnt) + ".png"), img)
-				## /debug
-				#for k, v in self.path_refs.items():
-				#	cmp_res = self.pc.compare_paths(v, pil_images)
-			elif (data['action'] == 'detect_objects_in_image'):
-				response = self.yolo_object_detector.detect_objects_in_image(data)
+					response = None
+			elif (data['module'] == 'path_comparator'):
+				if (data['action'] == 'store_ref_path'):
+					response = self.path_comparator.store_ref_path(data)
+				elif(data['action'] == 'qry_path_similarity'):
+					response = self.path_comparator.qry_path_similarity(data)
+				else:
+					response = None
+			elif (data['module'] == 'llm_decisions'):
+				if (data['action'] == 'classify_room_by_this_object_set_and_pic'):
+					response = self.llm_decisions.classify_room_by_this_object_set_and_pic(data)
 
 			self.socket.send_pyobj(response)
 

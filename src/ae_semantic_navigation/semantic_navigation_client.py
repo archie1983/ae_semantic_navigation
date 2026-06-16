@@ -27,7 +27,7 @@ class SemanticNavigationClient:
 			'bytes': path_imgs.tobytes(),
 			'path_id': path_id,
 			'action': "store_ref_path",
-			'module': "path_compare"
+			'module': "path_comparator"
 		}
 
 		## debug
@@ -63,7 +63,7 @@ class SemanticNavigationClient:
 			'dtype': str(path_imgs.dtype),
 			'bytes': path_imgs.tobytes(),
 			'action': "qry_path_similarity",
-			'module': "path_compare"
+			'module': "path_comparator"
 		}
 
 		## debug
@@ -105,7 +105,28 @@ class SemanticNavigationClient:
 			'dtype': str(img.dtype),
 			'bytes': img.tobytes(),
 			'action': "detect_objects_in_image",
-			'module': "yolo_obj_detector"
+			'module': "yolo_object_detector"
+		}
+
+		# Send request
+		self.socket.send_pyobj(data)
+
+		# Wait for response (this BLOCKS until Jetson replies)
+		try:
+			response = self.socket.recv_pyobj()
+			return response
+		except zmq.ZMQError as e:
+			print(f"Error receiving response: {e}")
+			return None
+
+	def classify_room_by_this_object_set_and_pic(self, obj_set = None, img_bytes = None):
+		data = {
+			'shape': img_bytes.shape,
+			'dtype': str(img_bytes.dtype),
+			'bytes': img_bytes.tobytes(),
+			'obj_set': obj_set,
+			'action': 'classify_room_by_this_object_set_and_pic',
+			'module': 'llm_decisions'
 		}
 
 		# Send request
@@ -144,3 +165,4 @@ if __name__ == "__main__":
 	img_array = np.stack([pil_image], axis = 0)
 	print(agent.detect_objects_in_image(img_array))
 
+	print(agent.classify_room_by_this_object_set_and_pic(obj_set={"Scales", "bathtub", "toothbrush"}, img_bytes = img_array))

@@ -15,7 +15,10 @@ dependencies = [
     "matplotlib",
     "zmq",
     "ultralytics",
-    "importlib"
+    "importlib",
+    "pickle",
+    "ae_path_compare",
+    "ae_llm_navigation_decisions"
 ]
 
 [tool.setuptools.packages.find]
