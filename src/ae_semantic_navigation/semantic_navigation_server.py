@@ -1,7 +1,5 @@
 import zmq
-from ae_semantic_navigation import YoloObjectDetector, PathComparator
-
-from src.ae_semantic_navigation import LLMDecisions
+from ae_semantic_navigation import YoloObjectDetector, PathComparator, LLMDecisions
 
 
 class SemanticNavigationServer:
