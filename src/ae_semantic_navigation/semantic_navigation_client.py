@@ -153,7 +153,7 @@ def gen_1_img():
 
 if __name__ == "__main__":
 	# Create agent and connect to Jetson
-	agent = SemanticNavigationClient(jetson_ip="192.168.0.32", port=5555)
+	agent = SemanticNavigationClient(jetson_ip="192.168.0.109", port=5555)
 
 	# store reference path images
 	# print(agent.store_ref_path(gen_n_imgs(10), "bathroom"))

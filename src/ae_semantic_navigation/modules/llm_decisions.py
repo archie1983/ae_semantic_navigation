@@ -11,8 +11,7 @@ class LLMDecisions:
 		received_img = received_array.reshape(data['shape'])[0]
 		# get x images from the received (x, 64, 64, 3) tensor. This will be our path to compare
 		pil_image = Image.fromarray(received_img)
+		obj_set = data['obj_set']
 
-		obj_set = None
-		img_uri = None
-		rt_llm, llm_text = self.ldm.classify_room_by_this_object_set_and_pic(obj_set={"Scales", "bathtub", "toothbrush"}, img_uri=None)
+		rt_llm, llm_text = self.ldm.classify_room_by_this_object_set_and_pic(obj_set=obj_set, img_bytes=pil_image)
 		return rt_llm
