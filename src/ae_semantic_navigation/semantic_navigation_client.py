@@ -1,4 +1,4 @@
-import zmq
+import zmq, glob, re
 import numpy as np
 import time, cv2, os
 from PIL import Image
@@ -151,6 +151,21 @@ def gen_1_img():
 	# Simulate a 64x64 RGB image
 	return np.random.randint(0, 255, (64, 64, 3), dtype=np.uint8)
 
+def extract_number(filename):
+	# Extract the number from the filename (assuming it's the step count)
+	# This regex looks for digits at the beginning, end, or between non-digits
+	numbers = re.findall(r'\d+', filename)
+	return int(numbers[-1]) if numbers else 0
+
+def load_images(path):
+	imgs_path = glob.glob(path)
+	imgs_path = sorted(imgs_path, key=extract_number)
+	pil_images = [Image.open(fname).convert('RGB') for fname in imgs_path]
+	return pil_images
+
+def load_path(base_dir):
+	return np.stack(load_images(base_dir + "/*.png"))
+
 if __name__ == "__main__":
 	# Create agent and connect to Jetson
 	agent = SemanticNavigationClient(jetson_ip="192.168.0.109", port=5555)
@@ -161,8 +176,36 @@ if __name__ == "__main__":
 	# print(agent.store_ref_path(gen_n_imgs(10), "living_room"))
 	# print(agent.qry_path_similarity(gen_n_imgs(3)))
 
+	#ref_path1 = load_path(
+	#	"/home/hp20024/robotics/latent_planning/snp_dreamerv3/ai2_thor_model_training_src/thortils/scripts/1")
+	#print(ref_path1)
+	#img_array = np.stack(ref_path1, axis=0)
+	#print(img_array.dtype)
+	#exit()
+
 	pil_image = Image.open("/home/hp20024/robotics/latent_planning/dreamerv3/scene_pics/8.png")
 	img_array = np.stack([pil_image], axis = 0)
-	print(agent.detect_objects_in_image(img_array))
+	obj_det_res = agent.detect_objects_in_image(img_array)
+	det_objs = set(obj_det_res['item_names'])
+	print("AE: det objs: ", det_objs)
 
-	print(agent.classify_room_by_this_object_set_and_pic(obj_set={"Scales", "bathtub", "toothbrush"}, img_bytes = img_array))
+	print("AE: room type: ", agent.classify_room_by_this_object_set_and_pic(obj_set=det_objs, img_bytes = img_array))
+
+	ref_path1 = load_path("/home/hp20024/robotics/latent_planning/snp_dreamerv3/ai2_thor_model_training_src/thortils/scripts/1")
+	ref_path2 = load_path("/home/hp20024/robotics/latent_planning/snp_dreamerv3/ai2_thor_model_training_src/thortils/scripts/2")
+	ref_path3 = load_path("/home/hp20024/robotics/latent_planning/snp_dreamerv3/ai2_thor_model_training_src/thortils/scripts/3")
+	ref_path4 = load_path("/home/hp20024/robotics/latent_planning/snp_dreamerv3/ai2_thor_model_training_src/thortils/scripts/4")
+	ref_path7 = load_path("/home/hp20024/robotics/latent_planning/snp_dreamerv3/ai2_thor_model_training_src/thortils/scripts/7")
+
+	ref_cmp_path = load_path("/home/hp20024/robotics/latent_planning/snp_dreamerv3/ai2_thor_model_training_src/thortils/scripts/tmp_cmp")
+
+	agent.store_ref_path(ref_path1, "ref_path1")
+	agent.store_ref_path(ref_path2, "ref_path2")
+	agent.store_ref_path(ref_path3, "ref_path3")
+	agent.store_ref_path(ref_path4, "ref_path4")
+	agent.store_ref_path(ref_path7, "ref_path7")
+
+	path_cmp_res = agent.qry_path_similarity(ref_cmp_path)
+	print("AE: path_cmp res: ", path_cmp_res)
+
+	#/home/hp20024/robotics/latent_planning/snp_dreamerv3/ai2_thor_model_training_src/thortils/scripts/tmp_cmp

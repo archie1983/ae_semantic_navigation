@@ -26,13 +26,15 @@ class PathComparator:
 		pil_images = [Image.fromarray(img) for img in received_images]
 		path_id = data['path_id']
 
+		mean_path_embedding = self.pc.get_mean_path_embedding(pil_images)
+
 		# if we already have this path_id (e.g., 'LVINGROOM_TO_KITCHEN') in the collection, then
 		# append to the set of this type of paths. If not, create the set.
 		if path_id in self.path_refs:
-			self.path_refs[path_id].add(pil_images)
+			self.path_refs[path_id].add(mean_path_embedding)
 		else:
 			self.path_refs[path_id] = set()
-			self.path_refs[path_id].add(pil_images)
+			self.path_refs[path_id].add(mean_path_embedding)
 
 		# now store this collection
 		with open(self.ref_path_store, "wb") as path_ref_store:
@@ -60,10 +62,11 @@ class PathComparator:
 		# get x images from the received (x, 64, 64, 3) tensor. This will be our path to compare
 		pil_images = [Image.fromarray(img) for img in received_images]
 		# compare that path against all reference paths
+		mean_path_embedding = self.pc.get_mean_path_embedding(pil_images)
 		if self.use_dino:
-			cmp_res = {k: float(self.pc.compare_paths_mean(v, pil_images)) for k, v in self.path_refs.items()}
+			cmp_res = {k: float(max(self.pc.compare_mean_embeddings(v, mean_path_embedding))) for k, v in self.path_refs.items()}
 		else:
-			cmp_res = {k: self.pc.fit_cur_path_to_ref_path(v, pil_images)[1] for k, v in self.path_refs.items()}
+			cmp_res = {k: self.pc.compare_mean_embeddings(v, mean_path_embedding)[1] for k, v in self.path_refs.items()}
 
 		# print(cmp_res)
 		# find the best match and return both the score and the reference match buffer
