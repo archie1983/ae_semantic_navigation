@@ -13,10 +13,8 @@ requires-python = ">=3.10"
 dependencies = [
     "numpy",
     "matplotlib",
-    "zmq",
+    "pyzmq",
     "ultralytics",
-    "importlib",
-    "pickle",
     "ae_path_compare",
     "ae_llm_navigation_decisions"
 ]

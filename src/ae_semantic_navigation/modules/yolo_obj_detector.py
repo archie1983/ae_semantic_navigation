@@ -11,7 +11,7 @@ class YoloObjectDetector:
 		#self.item_extractor_model = YOLO("item_extract_ae.pt")
 
 		# Get the path to your model file relative to the package
-		model_path = files('ae_semantic_navigation.models').joinpath('item_extract_ae.pt')
+		model_path = files('ae_semantic_navigation.models').joinpath('item_extract_ae.engine')
 		self.item_extractor_model = YOLO(str(model_path))
 
 	def detect_objects_in_image(self, data):
