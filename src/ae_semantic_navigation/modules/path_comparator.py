@@ -64,9 +64,9 @@ class PathComparator:
 		# compare that path against all reference paths
 		mean_path_embedding = self.pc.get_mean_path_embedding(pil_images)
 		if self.use_dino:
-			cmp_res = {k: float(max(self.pc.compare_mean_embeddings(v, mean_path_embedding))) for k, v in self.path_refs.items()}
+			cmp_res = {k: float(max(self.pc.compare_mean_path_embeddings(v, mean_path_embedding))) for k, v in self.path_refs.items()}
 		else:
-			cmp_res = {k: self.pc.compare_mean_embeddings(v, mean_path_embedding)[1] for k, v in self.path_refs.items()}
+			cmp_res = {k: self.pc.compare_mean_path_embeddings(v, mean_path_embedding)[1] for k, v in self.path_refs.items()}
 
 		# print(cmp_res)
 		# find the best match and return both the score and the reference match buffer
