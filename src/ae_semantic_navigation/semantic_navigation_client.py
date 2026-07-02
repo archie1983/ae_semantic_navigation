@@ -4,11 +4,26 @@ import time, cv2, os
 from PIL import Image
 
 class SemanticNavigationClient:
-	def __init__(self, jetson_ip, port=5555):
+	LLM_PORT = 5555
+	DR_NAV_PORT = 5556
+	RC_NAV_PORT = 5557
+
+	def __init__(self, jetson_ip):
 		self.context = zmq.Context()
-		self.socket = self.context.socket(zmq.REQ)  # REQuest socket
-		self.socket.connect(f"tcp://{jetson_ip}:{port}")
-		print(f"Connected to Jetson at {jetson_ip}:{port}")
+		# LLM container
+		self.llm_socket = self.context.socket(zmq.REQ)  # REQuest socket
+		self.llm_socket.connect(f"tcp://{jetson_ip}:{self.LLM_PORT}")
+		print(f"Connected to Jetson LLM container at {jetson_ip}:{self.LLM_PORT}")
+
+		# Door navigation container
+		self.dr_socket = self.context.socket(zmq.REQ)  # REQuest socket
+		self.dr_socket.connect(f"tcp://{jetson_ip}:{self.DR_NAV_PORT}")
+		print(f"Connected to Jetson Door navigation container at {jetson_ip}:{self.DR_NAV_PORT}")
+
+		# Room centre navigation container
+		self.rc_socket = self.context.socket(zmq.REQ)  # REQuest socket
+		self.rc_socket.connect(f"tcp://{jetson_ip}:{self.RC_NAV_PORT}")
+		print(f"Connected to Jetson RoomCentre navigation container at {jetson_ip}:{self.RC_NAV_PORT}")
 
 	def store_ref_path(self, path_imgs, path_id="?"):
 		"""
@@ -40,11 +55,11 @@ class SemanticNavigationClient:
 		## /debug
 
 		# Send request
-		self.socket.send_pyobj(data)
+		self.llm_socket.send_pyobj(data)
 
 		# Wait for response (this BLOCKS until Jetson replies)
 		try:
-			response = self.socket.recv_pyobj()
+			response = self.llm_socket.recv_pyobj()
 			return response
 		except zmq.ZMQError as e:
 			print(f"Error receiving response: {e}")
@@ -76,11 +91,11 @@ class SemanticNavigationClient:
 		## /debug
 
 		# Send request
-		self.socket.send_pyobj(data)
+		self.llm_socket.send_pyobj(data)
 
 		# Wait for response (this BLOCKS until Jetson replies)
 		try:
-			response = self.socket.recv_pyobj()
+			response = self.llm_socket.recv_pyobj()
 			return response
 		except zmq.ZMQError as e:
 			print(f"Error receiving response: {e}")
@@ -109,11 +124,11 @@ class SemanticNavigationClient:
 		}
 
 		# Send request
-		self.socket.send_pyobj(data)
+		self.llm_socket.send_pyobj(data)
 
 		# Wait for response (this BLOCKS until Jetson replies)
 		try:
-			response = self.socket.recv_pyobj()
+			response = self.llm_socket.recv_pyobj()
 			return response
 		except zmq.ZMQError as e:
 			print(f"Error receiving response: {e}")
@@ -130,11 +145,11 @@ class SemanticNavigationClient:
 		}
 
 		# Send request
-		self.socket.send_pyobj(data)
+		self.llm_socket.send_pyobj(data)
 
 		# Wait for response (this BLOCKS until Jetson replies)
 		try:
-			response = self.socket.recv_pyobj()
+			response = self.llm_socket.recv_pyobj()
 			return response
 		except zmq.ZMQError as e:
 			print(f"Error receiving response: {e}")
@@ -168,7 +183,7 @@ def load_path(base_dir):
 
 if __name__ == "__main__":
 	# Create agent and connect to Jetson
-	agent = SemanticNavigationClient(jetson_ip="192.168.0.109", port=5555)
+	agent = SemanticNavigationClient(jetson_ip="192.168.0.109")
 
 	# store reference path images
 	# print(agent.store_ref_path(gen_n_imgs(10), "bathroom"))
@@ -183,14 +198,17 @@ if __name__ == "__main__":
 	#print(img_array.dtype)
 	#exit()
 
+	# Object detection in an image
 	pil_image = Image.open("/home/hp20024/robotics/latent_planning/dreamerv3/scene_pics/8.png")
 	img_array = np.stack([pil_image], axis = 0)
 	obj_det_res = agent.detect_objects_in_image(img_array)
 	det_objs = set(obj_det_res['item_names'])
 	print("AE: det objs: ", det_objs)
 
+	# Room type inference from a set of objects and/or an image
 	print("AE: room type: ", agent.classify_room_by_this_object_set_and_pic(obj_set=det_objs, img_bytes = img_array))
 
+	# Embedding of a path
 	ref_path1 = load_path("/home/hp20024/robotics/latent_planning/snp_dreamerv3/ai2_thor_model_training_src/thortils/scripts/1")
 	ref_path2 = load_path("/home/hp20024/robotics/latent_planning/snp_dreamerv3/ai2_thor_model_training_src/thortils/scripts/2")
 	ref_path3 = load_path("/home/hp20024/robotics/latent_planning/snp_dreamerv3/ai2_thor_model_training_src/thortils/scripts/3")
@@ -205,6 +223,7 @@ if __name__ == "__main__":
 	agent.store_ref_path(ref_path4, "ref_path4")
 	agent.store_ref_path(ref_path7, "ref_path7")
 
+	# Comparison of a path against stored embedded ones
 	path_cmp_res = agent.qry_path_similarity(ref_cmp_path)
 	print("AE: path_cmp res: ", path_cmp_res)
 

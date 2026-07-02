@@ -53,6 +53,8 @@ class SemanticNavigationServer:
 			elif (data['module'] == 'llm_decisions'):
 				if (data['action'] == 'classify_room_by_this_object_set_and_pic'):
 					response = self.llm_decisions.classify_room_by_this_object_set_and_pic(data)
+				elif (data['action'] == 'quick_classify_room_by_this_object_set'):
+					response = self.llm_decisions.quick_classify_room_by_this_object_set(data)
 
 			self.socket.send_pyobj(response)
 
