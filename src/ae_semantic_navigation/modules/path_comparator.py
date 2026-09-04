@@ -4,6 +4,7 @@ import os, cv2
 from ae_path_compare import PathCompare
 import pickle
 from importlib.resources import files
+from .vector_db import VectorDB
 
 class PathComparator:
 	def __init__(self, use_dino = True):
@@ -18,6 +19,20 @@ class PathComparator:
 				self.path_refs = pickle.load(path_ref_store)
 		else:
 			self.path_refs = {}
+
+		self.vdb = VectorDB()
+
+	def store_door_transition(self, data):
+		# Process the images
+		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
+		received_images = received_array.reshape(data['shape'])
+		pil_images = [Image.fromarray(img) for img in received_images]
+		room_from = data['room_from']
+		room_to = data['room_to']
+
+		mean_path_embedding = self.pc.get_mean_path_embedding(pil_images)
+
+		self.vdb.store_door_transition(mean_path_embedding, room_from, room_to)
 
 	def store_ref_path(self, data):
 		# Process the images

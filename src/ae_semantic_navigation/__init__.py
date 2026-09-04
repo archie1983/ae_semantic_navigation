@@ -1,4 +1,4 @@
-from .modules import YoloObjectDetector, PathComparator, LLMDecisions
+from .modules import YoloObjectDetector, PathComparator, LLMDecisions, VectorDB
 from .semantic_navigation_server import SemanticNavigationServer
 from .semantic_navigation_client import SemanticNavigationClient
 
