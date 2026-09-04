@@ -31,7 +31,7 @@ class VectorDB:
 
         self.collection.add(
             ids=[unique_id],  # Must be unique
-            embeddings=[embedding_vector],
+            embeddings=[embedding_vector.tolist()],
             metadatas=[{"room_from": room_from, room_to: room_to}],
             #documents=["Optional: any text description"]  # 'documents' is also optional for storing related text
         )
