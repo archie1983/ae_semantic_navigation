@@ -31,7 +31,7 @@ class YoloObjectDetector:
 		# # /debug
 
 		#item_extractor_res = self.item_extractor_model(pil_image)
-		item_extractor_res = self.item_extractor_model.track(pil_image, persist=False)
+		item_extractor_res = self.item_extractor_model.track(pil_image, persist=True)
 		self.detect_unstable_item_detections(item_extractor_res)
 
 		# print("AE Classes: ", item_extractor_res[0].boxes.cls)
