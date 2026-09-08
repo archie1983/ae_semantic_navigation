@@ -45,6 +45,6 @@ class YoloObjectDetector:
 		path_id = "tmp_img"
 		os.makedirs(path_id, exist_ok=True)
 		self.img_cnt += 1
-		img = np.stack(img)
+		img = np.stack([img])
 		img = img[0]
 		cv2.imwrite(os.path.join(path_id, str(self.img_cnt) + ".png"), img)
