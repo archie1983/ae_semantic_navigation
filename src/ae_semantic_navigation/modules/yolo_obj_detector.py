@@ -31,7 +31,7 @@ class YoloObjectDetector:
 		# print("AE All: ", item_extractor_res[0].boxes)
 
 		item_names = [item_extractor_res[0].names[int(item)] for item in item_extractor_res[0].boxes.cls]
-		# print("item_names: ", item_names)
+		print("AE: item_names: ", item_names)
 
 		response = {
 			'item_names': item_names,
@@ -48,3 +48,4 @@ class YoloObjectDetector:
 		img = np.stack([img])
 		img = img[0]
 		cv2.imwrite(os.path.join(path_id, str(self.img_cnt) + ".png"), img)
+		print("AE: name: ", str(self.img_cnt), ".png")
