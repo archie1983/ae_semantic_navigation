@@ -22,7 +22,12 @@ class YoloObjectDetector:
 		received_img = received_array.reshape(data['shape'])[0]
 		# get x images from the received (x, 64, 64, 3) tensor. This will be our path to compare
 		pil_image = Image.fromarray(received_img)
-		self.store_image(pil_image)
+
+		# debug
+		img_path = self.store_image(pil_image)
+		reloaded_img = self.load_image(img_path)
+		reloaded_res = self.item_extractor_model(reloaded_img)
+		# /debug
 
 		item_extractor_res = self.item_extractor_model(pil_image)
 
@@ -31,7 +36,11 @@ class YoloObjectDetector:
 		# print("AE All: ", item_extractor_res[0].boxes)
 
 		item_names = [item_extractor_res[0].names[int(item)] for item in item_extractor_res[0].boxes.cls]
+		# debug
 		print("AE: item_names: ", item_names)
+		item_names_reloaded = [reloaded_res[0].names[int(item)] for item in reloaded_res[0].boxes.cls]
+		print("AE: item_names: ", item_names, " reloaded: ", item_names_reloaded, " path: ", img_path)
+		#/debug
 
 		response = {
 			'item_names': item_names,
@@ -49,3 +58,8 @@ class YoloObjectDetector:
 		img = img[0]
 		cv2.imwrite(os.path.join(path_id, str(self.img_cnt) + ".png"), img)
 		print("AE: name: ", str(self.img_cnt), ".png")
+		return os.path.join(path_id, str(self.img_cnt) + ".png")
+
+	def load_image(self, img_path):
+		img = Image.open(img_path)
+		return np.stack([img])[0]
