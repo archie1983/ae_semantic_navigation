@@ -2,6 +2,7 @@ from importlib.resources import files
 from ultralytics import YOLO
 import numpy as np
 from PIL import Image
+import os, cv2
 
 class YoloObjectDetector:
 	def __init__(self):
@@ -13,6 +14,7 @@ class YoloObjectDetector:
 		# Get the path to your model file relative to the package
 		model_path = files('ae_semantic_navigation.models').joinpath('item_extract_ae.engine')
 		self.item_extractor_model = YOLO(str(model_path))
+		self.img_cnt = 0
 
 	def detect_objects_in_image(self, data):
 		# 2. Process the images
@@ -20,6 +22,7 @@ class YoloObjectDetector:
 		received_img = received_array.reshape(data['shape'])[0]
 		# get x images from the received (x, 64, 64, 3) tensor. This will be our path to compare
 		pil_image = Image.fromarray(received_img)
+		self.store_image(pil_image)
 
 		item_extractor_res = self.item_extractor_model(pil_image)
 
@@ -36,3 +39,10 @@ class YoloObjectDetector:
 		}
 
 		return response
+
+	def store_image(self, img):
+		## debug
+		path_id = "tmp_img"
+		os.makedirs(path_id, exist_ok=True)
+		self.img_cnt += 1
+		cv2.imwrite(os.path.join(path_id, str(self.img_cnt) + ".png"), img)
