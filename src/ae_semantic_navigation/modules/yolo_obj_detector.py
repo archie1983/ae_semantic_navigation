@@ -32,13 +32,22 @@ class YoloObjectDetector:
 
         #item_extractor_res = self.item_extractor_model(pil_image)
         item_extractor_res = self.item_extractor_model.track(pil_image, persist=True)
-        self.detect_unstable_item_detections(item_extractor_res)
+        instability_info = self.detect_unstable_item_detections(item_extractor_res)
 
         # print("AE Classes: ", item_extractor_res[0].boxes.cls)
         # print("AE Classes1: ", item_extractor_res[0].names)
         # print("AE All: ", item_extractor_res[0].boxes)
 
-        item_names = [item_extractor_res[0].names[int(item)] for item in item_extractor_res[0].boxes.cls]
+        #item_names = [item_extractor_res[0].names[int(item)] for item in item_extractor_res[0].boxes.cls]
+        all_info = zip(item_extractor_res[0].boxes.cls, item_extractor_res[0].boxes.conf, item_extractor_res[0].boxes.id)
+
+        item_infos = [
+            {'name': item_extractor_res[0].names[int(item[0])],
+             'conf': item[1],
+             'track_id': item[2]}
+            for item in all_info
+        ]
+
         # # debug
         # print("AE: item_names: ", item_names)
         # item_names_reloaded = [reloaded_res[0].names[int(item)] for item in reloaded_res[0].boxes.cls]
@@ -46,7 +55,8 @@ class YoloObjectDetector:
         # #/debug
 
         response = {
-            'item_names': item_names,
+            'item_infos': item_infos,
+            'instability_info': instability_info,
             'success': True
         }
 
@@ -81,6 +91,14 @@ class YoloObjectDetector:
                 prev_conf = self.object_history[obj_id][-2]['conf']
                 if cls != prev_class:
                     print(f"Object {obj_id} changed from {prev_name} to {cur_name}! CONF {conf} to {prev_conf}. Potentially affected: {len(self.object_history[obj_id])} frames")
+                    return {'obj_id': obj_id,
+                            'prev_name': prev_name,
+                            'cur_name': cur_name,
+                            'prev_conf': prev_conf,
+                            'conf': conf,
+                            'frame_cnt': len(self.object_history[obj_id])
+                            }
+            return None
 
     def store_image(self, img):
         ## debug
