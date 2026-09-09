@@ -88,7 +88,7 @@ class YoloObjectDetector:
             if len(self.object_history[obj_id]) > 1:
                 prev_class = self.object_history[obj_id][-2]['class']
                 prev_name = self.object_history[obj_id][-2]['name']
-                prev_conf = self.object_history[obj_id][-2]['conf']
+                prev_conf = self.object_history[obj_id][-2]['confidence']
                 if cls != prev_class:
                     print(f"Object {obj_id} changed from {prev_name} to {cur_name}! CONF {conf} to {prev_conf}. Potentially affected: {len(self.object_history[obj_id])} frames")
                     return {'obj_id': obj_id,
