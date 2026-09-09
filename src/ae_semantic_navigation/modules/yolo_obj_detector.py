@@ -75,12 +75,13 @@ class YoloObjectDetector:
             return
 
         all_info = zip(yolo_res[0].boxes.cls, yolo_res[0].boxes.conf, yolo_res[0].boxes.id, yolo_res[0].boxes.xyxy)
+        detected_instabilities = []
 
-        for cls, conf, id, xyxy in all_info:
-            obj_id = int(id)
-            cls = int(cls)
-            conf = float(conf)
-            bbox = xyxy.tolist()
+        for box in yolo_res[0].boxes:
+            obj_id = int(box.id)
+            cls = int(box.cls)
+            conf = float(box.conf)
+            bbox = box.xyxy.tolist()
             cur_name = yolo_res[0].names[cls]
             print("AE: live detection: ", cur_name)
 
@@ -105,14 +106,14 @@ class YoloObjectDetector:
                 prev_conf = self.object_history[obj_id][-2]['confidence']
                 if cls != prev_class:
                     print(f"Object {obj_id} changed from {prev_name} to {cur_name}! CONF {conf} to {prev_conf}. Potentially affected: {len(self.object_history[obj_id])} frames")
-                    return {'obj_id': obj_id,
+                    detected_instabilities.append({'obj_id': obj_id,
                             'prev_name': prev_name,
                             'cur_name': cur_name,
                             'prev_conf': prev_conf,
                             'conf': conf,
                             'frame_cnt': len(self.object_history[obj_id])
-                            }
-            return None
+                            })
+        return detected_instabilities
 
     def store_image(self, img):
         ## debug
