@@ -70,6 +70,7 @@ class YoloObjectDetector:
 
     def detect_unstable_item_detections(self, yolo_res):
         if yolo_res[0].boxes is None or yolo_res[0].boxes.id is None:
+            print("AE: EARLY RETURN: ", yolo_res[0].boxes)
             return
 
         for box in yolo_res[0].boxes:
