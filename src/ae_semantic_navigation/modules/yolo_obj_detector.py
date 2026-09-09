@@ -39,7 +39,13 @@ class YoloObjectDetector:
         # print("AE All: ", item_extractor_res[0].boxes)
 
         #item_names = [item_extractor_res[0].names[int(item)] for item in item_extractor_res[0].boxes.cls]
-        all_info = zip(item_extractor_res[0].boxes.cls, item_extractor_res[0].boxes.conf, item_extractor_res[0].boxes.id)
+        # handle a case where ID boxes are None
+        if item_extractor_res[0].boxes.id != None:
+            track_ids = item_extractor_res[0].boxes.id
+        else:
+            track_ids = [-1 for i in range(len(item_extractor_res[0].boxes.cls))]
+
+        all_info = zip(item_extractor_res[0].boxes.cls, item_extractor_res[0].boxes.conf, track_ids)
 
         item_infos = [
             {'name': item_extractor_res[0].names[int(item[0])],
