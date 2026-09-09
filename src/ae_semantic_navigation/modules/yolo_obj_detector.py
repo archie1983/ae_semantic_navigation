@@ -90,6 +90,9 @@ class YoloObjectDetector:
                 'name': cur_name
             })
 
+            if (cur_name == 'BOOTS' or cur_name == 'PLUNGER'):
+                print(self.object_history)
+
             # Check if class changed compared to last frame
             if len(self.object_history[obj_id]) > 1:
                 prev_class = self.object_history[obj_id][-2]['class']
