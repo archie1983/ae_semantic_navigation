@@ -49,8 +49,8 @@ class YoloObjectDetector:
 
         item_infos = [
             {'name': item_extractor_res[0].names[int(item[0])],
-             'conf': item[1],
-             'track_id': item[2]}
+             'conf': float(item[1]),
+             'track_id': int(item[2])}
             for item in all_info
         ]
 
@@ -84,8 +84,8 @@ class YoloObjectDetector:
 
             # Append current detection
             self.object_history[obj_id].append({
-                'class': cls,
-                'confidence': conf,
+                'class': int(cls),
+                'confidence': float(conf),
                 'bbox': bbox,
                 'name': cur_name
             })
