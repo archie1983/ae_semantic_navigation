@@ -53,6 +53,7 @@ class YoloObjectDetector:
              'track_id': int(item[2])}
             for item in all_info
         ]
+        print("AE: found ITEMS: ", item_infos)
 
         # # debug
         # print("AE: item_names: ", item_names)
