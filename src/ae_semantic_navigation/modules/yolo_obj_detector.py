@@ -74,12 +74,14 @@ class YoloObjectDetector:
             print("AE: EARLY RETURN: ", yolo_res[0].boxes)
             return
 
-        for box in yolo_res[0].boxes:
-            obj_id = int(box.id)
-            cls = int(box.cls)
-            conf = float(box.conf)
-            bbox = box.xyxy.tolist()
-            cur_name = yolo_res[0].names[int(cls)]
+        all_info = zip(yolo_res[0].boxes.cls, yolo_res[0].boxes.conf, yolo_res[0].boxes.id, yolo_res[0].boxes.xyxy)
+
+        for cls, conf, id, xyxy in all_info:
+            obj_id = int(id)
+            cls = int(cls)
+            conf = float(conf)
+            bbox = xyxy.tolist()
+            cur_name = yolo_res[0].names[cls]
             print("AE: live detection: ", cur_name)
 
             if obj_id not in self.object_history:
@@ -87,8 +89,8 @@ class YoloObjectDetector:
 
             # Append current detection
             self.object_history[obj_id].append({
-                'class': int(cls),
-                'confidence': float(conf),
+                'class': cls,
+                'confidence': conf,
                 'bbox': bbox,
                 'name': cur_name
             })
