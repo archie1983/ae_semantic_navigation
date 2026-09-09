@@ -80,6 +80,7 @@ class YoloObjectDetector:
             conf = float(box.conf)
             bbox = box.xyxy.tolist()
             cur_name = yolo_res[0].names[int(cls)]
+            print("AE: live detection: ", cur_name)
 
             if obj_id not in self.object_history:
                 self.object_history[obj_id] = []
