@@ -48,9 +48,11 @@ class YoloObjectDetector:
         all_info = zip(item_extractor_res[0].boxes.cls, item_extractor_res[0].boxes.conf, track_ids)
 
         item_infos = [
-            {'name': item_extractor_res[0].names[int(item[0])],
-             'conf': float(item[1]),
-             'track_id': int(item[2])}
+            {
+                'track_id': int(item[2]),
+                'name': item_extractor_res[0].names[int(item[0])],
+                'conf': float(item[1])
+            }
             for item in all_info
         ]
         print("AE: found ITEMS: ", item_infos)
@@ -71,7 +73,7 @@ class YoloObjectDetector:
 
     def detect_unstable_item_detections(self, yolo_res):
         if yolo_res[0].boxes is None or yolo_res[0].boxes.id is None:
-            print("AE: EARLY RETURN: ", yolo_res[0].boxes)
+            #print("AE: EARLY RETURN: ", yolo_res[0].boxes)
             return
 
         all_info = zip(yolo_res[0].boxes.cls, yolo_res[0].boxes.conf, yolo_res[0].boxes.id, yolo_res[0].boxes.xyxy)
@@ -83,7 +85,7 @@ class YoloObjectDetector:
             conf = float(box.conf)
             bbox = box.xyxy.tolist()
             cur_name = yolo_res[0].names[cls]
-            print("AE: live detection: ", cur_name)
+            #print("AE: live detection: ", cur_name)
 
             if obj_id not in self.object_history:
                 self.object_history[obj_id] = []
@@ -96,8 +98,8 @@ class YoloObjectDetector:
                 'name': cur_name
             })
 
-            if (cur_name == 'BOOTS' or cur_name == 'PLUNGER'):
-                print(self.object_history)
+            # if (cur_name == 'BOOTS' or cur_name == 'PLUNGER'):
+            #     print(self.object_history)
 
             # Check if class changed compared to last frame
             if len(self.object_history[obj_id]) > 1:
@@ -106,7 +108,7 @@ class YoloObjectDetector:
                 prev_conf = self.object_history[obj_id][-2]['confidence']
                 if cls != prev_class:
                     print(f"Object {obj_id} changed from {prev_name} to {cur_name}! CONF {conf} to {prev_conf}. Potentially affected: {len(self.object_history[obj_id])} frames")
-                    detected_instabilities.append({'obj_id': obj_id,
+                    detected_instabilities.append({'track_id': obj_id,
                             'prev_name': prev_name,
                             'cur_name': cur_name,
                             'prev_conf': prev_conf,
