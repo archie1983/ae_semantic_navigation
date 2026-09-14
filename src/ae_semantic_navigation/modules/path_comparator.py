@@ -34,6 +34,24 @@ class PathComparator:
 
 		self.vdb.store_door_transition(mean_path_embedding, room_from, room_to)
 
+	def qry_door_transition(self, data):
+		# Process the images
+		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
+		received_images = received_array.reshape(data['shape'])
+		pil_images = [Image.fromarray(img) for img in received_images]
+
+		mean_path_embedding = self.pc.get_mean_path_embedding(pil_images)
+
+		qry_results = self.vdb.qry_door_transition(mean_path_embedding)
+
+		# Send the response back
+		response = {
+			'success': True,
+			'qry_results': qry_results
+		}
+
+		return response
+
 	def store_ref_path(self, data):
 		# Process the images
 		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])

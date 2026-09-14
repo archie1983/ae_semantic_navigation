@@ -50,6 +50,8 @@ class SemanticNavigationServer:
 					response = self.path_comparator.qry_path_similarity(data)
 				elif(data['action'] == 'store_door_transition'):
 					response = self.path_comparator.store_door_transition(data)
+				elif (data['action'] == 'qry_door_transition'):
+					response = self.path_comparator.qry_door_transition(data)
 				else:
 					response = None
 			elif (data['module'] == 'llm_decisions'):

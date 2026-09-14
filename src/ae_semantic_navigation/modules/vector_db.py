@@ -36,6 +36,23 @@ class VectorDB:
             #documents=["Optional: any text description"]  # 'documents' is also optional for storing related text
         )
 
+    def qry_door_transition(self, embedding_vector):
+        results = self.collection.query(
+            query_embeddings=[embedding_vector.tolist()],
+            n_results=5
+        )
+
+        results = []
+
+        # The results will be a dictionary containing 'ids', 'distances', and 'metadatas' lists
+        for id, distance, metadata in zip(results['ids'][0], results['distances'][0], results['metadatas'][0]):
+            similarity = 1 - distance  # For cosine distance, this gives you cosine similarity
+            print(f"Found similar DOOR image ID: {id}, Similarity: {similarity:.4f}, Metadata: {metadata}")
+            print(metadata['room_from'], " TO ", metadata['room_to'])
+            results.append({'room_from': metadata['room_from'], 'room_to': metadata['room_to'], 'similarity': similarity})
+
+        return results
+
     def del_embedding(self, id_to_del):
         # Delete a record by its ID
         self.collection.delete(ids=[id_to_del])
