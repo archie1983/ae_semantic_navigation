@@ -8,18 +8,26 @@ class VectorDB:
         # 1. Set up a persistent client
         self.client = chromadb.PersistentClient(path="../chroma_db")  # Data saved here
 
-        # # Delete the old, messy collection
-        # try:
-        #     self.client.delete_collection(name="door_transitions")
-        #     print("Old collection dropped.")
-        # except Exception:
-        #     print("Collection didn't exist yet.")
-
         # 2. Create or get a collection
         self.collection = self.client.get_or_create_collection(
             name="door_transitions",
             metadata={"hnsw:space": "cosine"}  # Use cosine similarity for search
         )
+
+    def reset_database(self):
+        """Call this manually to truncate and clear out all debug data cleanly."""
+        try:
+            self.client.delete_collection(name="door_transitions")
+            print("Old collection dropped.")
+        except Exception:
+            print("Collection didn't exist.")
+
+        # Recreate the fresh collection immediately
+        self.collection = self.client.get_or_create_collection(
+            name="door_transitions",
+            metadata={"hnsw:space": "cosine"}
+        )
+        print("Fresh door_transitions collection initialized.")
 
     def add_embeding(self, embedding_vector, detected_items):
         unique_id = "img_" + str(uuid.uuid4())
@@ -44,19 +52,37 @@ class VectorDB:
         )
 
     def qry_door_transition(self, embedding_vector):
+        # Safeguard: If the collection is empty, querying it will throw an error or return empty lists
+        if self.collection.count() == 0:
+            print("Database is empty. No transitions to query.")
+            return []
+
         results = self.collection.query(
             query_embeddings=[embedding_vector.tolist()],
-            n_results=5
+            n_results=min(5, self.collection.count()) # Avoid asking for more items than exist
         )
 
         qry_results = []
 
+        # Safe unpack check in case Chroma returns empty results structures
+        if not results['ids'] or not results['ids'][0]:
+            return qry_results
+
+        # Chroma returns a list of lists. Index [0] gets the results for our single query vector.
+        # This preserves Chroma's automatic highest-similarity-first sorting!
+        ids = results['ids'][0]
+        distances = results['distances'][0]
+        metadatas = results['metadatas'][0]
         # The results will be a dictionary containing 'ids', 'distances', and 'metadatas' lists
-        for id, distance, metadata in zip(results['ids'][0], results['distances'][0], results['metadatas'][0]):
+        for id, distance, metadata in zip(ids, distances, metadatas):
             similarity = 1 - distance  # For cosine distance, this gives you cosine similarity
             print(f"Found similar DOOR image ID: {id}, Similarity: {similarity:.4f}, Metadata: {metadata}")
-            print(metadata['room_from'], " TO ", metadata['room_to'])
-            qry_results.append({'room_from': metadata['room_from'], 'room_to': metadata['room_to'], 'similarity': similarity})
+            print(metadata.get('room_from'), " TO ", metadata.get('room_to'))
+            qry_results.append({
+                'room_from': metadata.get('room_from'),
+                'room_to': metadata.get('room_to'),
+                'similarity': similarity
+            })
 
         return qry_results
 
