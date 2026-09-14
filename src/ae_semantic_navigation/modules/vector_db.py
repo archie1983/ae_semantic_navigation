@@ -8,9 +8,16 @@ class VectorDB:
         # 1. Set up a persistent client
         self.client = chromadb.PersistentClient(path="../chroma_db")  # Data saved here
 
+        # # Delete the old, messy collection
+        # try:
+        #     self.client.delete_collection(name="door_transitions")
+        #     print("Old collection dropped.")
+        # except Exception:
+        #     print("Collection didn't exist yet.")
+
         # 2. Create or get a collection
         self.collection = self.client.get_or_create_collection(
-            name="image_embeddings",
+            name="door_transitions",
             metadata={"hnsw:space": "cosine"}  # Use cosine similarity for search
         )
 
