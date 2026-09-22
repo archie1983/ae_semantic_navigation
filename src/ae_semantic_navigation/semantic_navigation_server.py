@@ -81,5 +81,8 @@ if __name__ == "__main__":
                         help="Reset vector DB upon startup")
     args = parser.parse_args()
 
+    if args.reset_db:
+        print("Resetting vector DB")
+
     pcs = SemanticNavigationServer(reset_db=args.reset_db)
     pcs.run()
