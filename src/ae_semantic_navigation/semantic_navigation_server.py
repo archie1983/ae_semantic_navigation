@@ -76,9 +76,10 @@ class SemanticNavigationServer:
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-rdb", "--reset_db", default=False, help="reset vector DB upon startup")
-
+    parser.add_argument("-rdb", "--reset_db",
+                        action="store_true", dest="reset_db", default=False,
+                        help="Reset vector DB upon startup")
     args = parser.parse_args()
 
-#pcs = SemanticNavigationServer()
-#pcs.run()
+    pcs = SemanticNavigationServer(reset_db=args.reset_db)
+    pcs.run()
