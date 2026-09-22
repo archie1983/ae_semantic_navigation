@@ -22,6 +22,9 @@ class PathComparator:
 
 		self.vdb = VectorDB()
 
+	def reset_db(self):
+		self.vdb.reset_database()
+
 	def store_door_transition(self, data):
 		# Process the images
 		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])

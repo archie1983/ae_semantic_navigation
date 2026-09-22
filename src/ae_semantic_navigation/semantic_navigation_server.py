@@ -1,11 +1,16 @@
 import zmq
 from ae_semantic_navigation import YoloObjectDetector, PathComparator, LLMDecisions
+from argparse import ArgumentParser
 
 
 class SemanticNavigationServer:
-	def __init__(self, port=5555, use_dino = True):
+	def __init__(self, port=5555, use_dino = True, reset_db = False):
 		# Path comparator
 		self.path_comparator = PathComparator(use_dino)
+
+		if reset_db:
+			self.path_comparator.reset_db()
+
 		# Yolo item detector
 		self.yolo_object_detector = YoloObjectDetector()
 		# LLM decisions' maker
@@ -70,5 +75,10 @@ class SemanticNavigationServer:
 			# 	pil_image = Image.fromarray(received_image)
 
 if __name__ == "__main__":
-	pcs = SemanticNavigationServer()
-	pcs.run()
+	parser = ArgumentParser()
+	parser.add_argument("-rdb", "--reset_db", default=False, help="reset vector DB upon startup")
+
+	args = parser.parse_args()
+
+	#pcs = SemanticNavigationServer()
+	#pcs.run()
