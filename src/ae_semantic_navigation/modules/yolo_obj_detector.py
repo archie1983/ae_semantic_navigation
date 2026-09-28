@@ -40,18 +40,28 @@ class YoloObjectDetector:
 
         #item_names = [item_extractor_res[0].names[int(item)] for item in item_extractor_res[0].boxes.cls]
         # handle a case where ID boxes are None
-        if item_extractor_res[0].boxes.id != None:
-            track_ids = item_extractor_res[0].boxes.id
+        if item_extractor_res[0].boxes.id is not None:
+            track_ids = item_extractor_res[0].boxes.id.int().tolist()
         else:
-            track_ids = [-1 for i in range(len(item_extractor_res[0].boxes.cls))]
+            #track_ids = [-1 for i in range(len(item_extractor_res[0].boxes.cls))]
+            track_ids = [-1] * len(item_extractor_res[0].boxes.cls)
 
-        all_info = zip(item_extractor_res[0].boxes.cls, item_extractor_res[0].boxes.conf, track_ids)
+        classes = item_extractor_res[0].boxes.cls.int().tolist()
+        confs = item_extractor_res[0].boxes.conf.float().tolist()
+
+        # .xyxy contains [xmin, ymin, xmax, ymax] boxes as a tensor
+        bboxes = item_extractor_res[0].boxes.xyxy.tolist()
+
+        all_info = zip(classes, confs, track_ids, bboxes)
+        #all_info = zip(item_extractor_res[0].boxes.cls, item_extractor_res[0].boxes.conf, track_ids, item_extractor_res[0].boxes.xyxy)
+        #all_info = zip(yolo_res[0].boxes.cls, yolo_res[0].boxes.conf, yolo_res[0].boxes.id, yolo_res[0].boxes.xyxy)
 
         item_infos = [
             {
                 'track_id': int(item[2]),
                 'name': item_extractor_res[0].names[int(item[0])],
-                'conf': float(item[1])
+                'conf': float(item[1]),
+                'bbox': item[3]
             }
             for item in all_info
         ]
@@ -63,6 +73,9 @@ class YoloObjectDetector:
         # print("AE: item_names: ", item_names, " reloaded: ", item_names_reloaded, " path: ", img_path)
         # #/debug
 
+        # return detected items along with other info and also instability_info - where the class of an item has
+        # changed but the ID has not - we want to track these dubious items and throw them out of list used
+        # for room type ID - we will re-query room type for previous identifications in such cases from client side.
         response = {
             'item_infos': item_infos,
             'instability_info': instability_info,
@@ -72,18 +85,27 @@ class YoloObjectDetector:
         return response
 
     def detect_unstable_item_detections(self, yolo_res):
+        '''
+        Look at current yolo result and find items that have tracking IDs seen before, but different classes.
+        Such items are unstable (e.g. plunger <-> boots) and client needs to know about them so that room type
+        can be correctly identified or re-identified.
+        :param yolo_res:
+        :return:
+        '''
         if yolo_res[0].boxes is None or yolo_res[0].boxes.id is None:
             #print("AE: EARLY RETURN: ", yolo_res[0].boxes)
-            return
+            return []
 
-        all_info = zip(yolo_res[0].boxes.cls, yolo_res[0].boxes.conf, yolo_res[0].boxes.id, yolo_res[0].boxes.xyxy)
+        #all_info = zip(yolo_res[0].boxes.cls, yolo_res[0].boxes.conf, yolo_res[0].boxes.id, yolo_res[0].boxes.xyxy)
         detected_instabilities = []
 
         for box in yolo_res[0].boxes:
+            if box.id is None:
+                continue
             obj_id = int(box.id)
             cls = int(box.cls)
             conf = float(box.conf)
-            bbox = box.xyxy.tolist()
+            bbox = box.xyxy.tolist()[0]
             cur_name = yolo_res[0].names[cls]
             #print("AE: live detection: ", cur_name)
 
