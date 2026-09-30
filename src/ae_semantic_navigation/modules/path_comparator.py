@@ -32,10 +32,11 @@ class PathComparator:
 		pil_images = [Image.fromarray(img) for img in received_images]
 		room_from = data['room_from']
 		room_to = data['room_to']
+		early_or_late = data['early_or_late']
 
 		mean_path_embedding = self.pc.get_mean_path_embedding(pil_images)
 
-		self.vdb.store_door_transition(mean_path_embedding, room_from, room_to)
+		self.vdb.store_door_transition(mean_path_embedding, room_from, room_to, early_or_late)
 
 	def qry_door_transition(self, data):
 		# Process the images

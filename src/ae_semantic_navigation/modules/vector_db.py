@@ -40,14 +40,14 @@ class VectorDB:
             documents=["Optional: any text description"]  # 'documents' is also optional for storing related text
         )
 
-    def store_door_transition(self, embedding_vector, room_from, room_to):
+    def store_door_transition(self, embedding_vector, room_from, room_to, early_or_late):
         unique_id = "dt_" + str(uuid.uuid4())
         timestamp = datetime.now().isoformat()
 
         self.collection.add(
             ids=[unique_id],  # Must be unique
             embeddings=[embedding_vector.tolist()],
-            metadatas=[{"room_from": room_from, "room_to": room_to}],
+            metadatas=[{"room_from": room_from, "room_to": room_to, "early_or_late": early_or_late}],
             #documents=["Optional: any text description"]  # 'documents' is also optional for storing related text
         )
 
@@ -77,10 +77,11 @@ class VectorDB:
         for id, distance, metadata in zip(ids, distances, metadatas):
             similarity = 1 - distance  # For cosine distance, this gives you cosine similarity
             print(f"Found similar DOOR image ID: {id}, Similarity: {similarity:.4f}, Metadata: {metadata}")
-            print(metadata.get('room_from'), " TO ", metadata.get('room_to'))
+            print(metadata.get('room_from'), " TO ", metadata.get('room_to'), " early_or_late: ", metadata.get('early_or_late'))
             qry_results.append({
                 'room_from': metadata.get('room_from'),
                 'room_to': metadata.get('room_to'),
+                'early_or_late': metadata.get('early_or_late'),
                 'similarity': similarity
             })
 
