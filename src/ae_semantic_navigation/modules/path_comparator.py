@@ -56,6 +56,37 @@ class PathComparator:
 
 		return response
 
+	def store_door_pics_of_transition(self, data):
+		# Process the images
+		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
+		received_images = received_array.reshape(data['shape'])
+		pil_images = [Image.fromarray(img) for img in received_images]
+		room_from = data['room_from']
+		room_to = data['room_to']
+		door_bboxes = data['door_bboxes']
+
+		door_imgs_embeddings = self.pc.get_simple_batch_encoded_images(pil_images)
+
+		self.vdb.store_doors_imgs(door_imgs_embeddings, room_from, room_to, door_bboxes)
+
+	def qry_door_pics_of_transition(self, data):
+		# Process the images
+		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
+		received_images = received_array.reshape(data['shape'])
+		pil_image = Image.fromarray(received_images[0])
+
+		door_pic_embedding = self.pc.get_single_img_embedding(pil_image)
+
+		qry_results = self.vdb.qry_door_imgs(door_pic_embedding)
+
+		# Send the response back
+		response = {
+			'success': True,
+			'qry_results': qry_results
+		}
+
+		return response
+
 	def store_ref_path(self, data):
 		# Process the images
 		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
