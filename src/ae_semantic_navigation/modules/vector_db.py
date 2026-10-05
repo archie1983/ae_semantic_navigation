@@ -92,7 +92,7 @@ class VectorDB:
 
         return qry_results
 
-    def store_door_imgs(self, door_imgs_embeddings, room_from, room_to, door_bboxes):
+    def store_doors_imgs(self, door_imgs_embeddings, room_from, room_to, door_bboxes):
         """
         Store single door embeddings to recognize doors in the future
         :param door_imgs_embeddings:
