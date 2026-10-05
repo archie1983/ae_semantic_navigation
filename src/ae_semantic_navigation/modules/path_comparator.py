@@ -77,7 +77,7 @@ class PathComparator:
 
 		door_pic_embedding = self.pc.get_single_img_embedding(pil_image)
 
-		qry_results = self.vdb.qry_door_imgs(door_pic_embedding)
+		qry_results = self.vdb.qry_door_img(door_pic_embedding)
 
 		# Send the response back
 		response = {
