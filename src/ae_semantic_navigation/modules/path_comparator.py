@@ -61,6 +61,8 @@ class PathComparator:
 		received_items = data['door_pics']
 		door_pics = []
 
+		print("AE: store_door_pics_of_transition:: data == ", data)
+
 		for item in received_items:
 			# Reconstruct the raw binary buffer back to an active NumPy array
 			np_arr = np.frombuffer(item['bytes'], dtype=item['dtype'])
