@@ -57,15 +57,23 @@ class PathComparator:
 		return response
 
 	def store_door_pics_of_transition(self, data):
-		# Process the images
-		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
-		received_images = received_array.reshape(data['shape'])
-		pil_images = [Image.fromarray(img) for img in received_images]
+		# process all received images
+		received_items = data['door_pics']
+		door_pics = []
+
+		for item in received_items:
+			# Reconstruct the raw binary buffer back to an active NumPy array
+			np_arr = np.frombuffer(item['bytes'], dtype=item['dtype'])
+			#img_bgr = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+			received_img = np_arr.reshape(data['shape'])
+			door_pics.append(received_img)
+
+		# Pass the individual image crops directly to DINOv3
+		door_imgs_embeddings = self.pc.get_simple_batch_encoded_images(door_pics)
+
 		room_from = data['room_from']
 		room_to = data['room_to']
 		door_bboxes = data['door_bboxes']
-
-		door_imgs_embeddings = self.pc.get_simple_batch_encoded_images(pil_images)
 
 		self.vdb.store_doors_imgs(door_imgs_embeddings, room_from, room_to, door_bboxes)
 
