@@ -68,7 +68,8 @@ class PathComparator:
 			np_arr = np.frombuffer(item['bytes'], dtype=item['dtype'])
 			#img_bgr = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 			received_img = np_arr.reshape(item['shape'])
-			door_pics.append(received_img)
+			pil_image = Image.fromarray(received_img)
+			door_pics.append(pil_image)
 
 		# Pass the individual image crops directly to DINOv3
 		door_imgs_embeddings = self.pc.get_simple_batch_encoded_images(door_pics)
