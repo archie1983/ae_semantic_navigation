@@ -110,10 +110,10 @@ class VectorDB:
         for di in door_infos:
             door_pic_embedding = di[0]
             bbox = di[1]
-            unique_id = unique_id + "_" + str(record_cnt)
+            unique_id_to_use = unique_id + "_" + str(record_cnt)
 
             self.door_id_collection.add(
-                ids=[unique_id],  # Must be unique
+                ids=[unique_id_to_use],  # Must be unique
                 embeddings=[door_pic_embedding.tolist()],
                 metadatas=[{"room_from": room_from, "room_to": room_to, "bbox": bbox}]
             )
