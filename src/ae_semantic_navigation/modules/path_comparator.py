@@ -34,9 +34,10 @@ class PathComparator:
 		room_to = data['room_to']
 		early_or_late = data['early_or_late']
 
-		mean_path_embedding = self.pc.get_mean_path_embedding(pil_images)
+		#door_imgs_embedding_mean = self.pc.get_mean_path_embedding(pil_images)
+		door_imgs_embedding_mean = self.pc.get_mean_path_embedding_with_odds_filtered(pil_images)
 
-		self.vdb.store_door_transition(mean_path_embedding, room_from, room_to, early_or_late)
+		self.vdb.store_door_transition(door_imgs_embedding_mean, room_from, room_to, early_or_late)
 
 	def qry_door_transition(self, data):
 		# Process the images
@@ -72,7 +73,9 @@ class PathComparator:
 			door_pics.append(pil_image)
 
 		# Pass the individual image crops directly to DINOv3
-		door_imgs_embeddings = self.pc.get_simple_batch_encoded_images(door_pics)
+		#door_imgs_embeddings = self.pc.get_simple_batch_encoded_images(door_pics)
+		door_imgs_embeddings = self.pc.get_potentially_ambiguous_batch_embeddings(door_pics)
+		#door_imgs_embedding_mean = self.pc.get_mean_path_embedding_with_odds_filtered(door_pics)
 
 		room_from = data['room_from']
 		room_to = data['room_to']
