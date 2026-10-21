@@ -80,18 +80,20 @@ class PathComparator:
 		room_from = data['room_from']
 		room_to = data['room_to']
 		door_bboxes = data['door_bboxes']
+		source_snp = data['source_snp']
 
-		self.vdb.store_doors_imgs(door_imgs_embeddings, room_from, room_to, door_bboxes)
+		self.vdb.store_doors_imgs(door_imgs_embeddings, room_from, room_to, door_bboxes, source_snp)
 
 	def qry_door_pics_of_transition(self, data):
 		# Process the images
 		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
 		received_images = received_array.reshape(data['shape'])
 		pil_image = Image.fromarray(received_images[0])
+		source_snp = data['source_snp']
 
 		door_pic_embedding = self.pc.get_single_img_embedding(pil_image)
 
-		qry_results = self.vdb.qry_door_img(door_pic_embedding)
+		qry_results = self.vdb.qry_door_img(door_pic_embedding, source_snp)
 
 		# Send the response back
 		response = {

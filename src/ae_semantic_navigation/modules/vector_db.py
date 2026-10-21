@@ -92,7 +92,7 @@ class VectorDB:
 
         return qry_results
 
-    def store_doors_imgs(self, door_imgs_embeddings, room_from, room_to, door_bboxes):
+    def store_doors_imgs(self, door_imgs_embeddings, room_from, room_to, door_bboxes, source_snp):
         """
         Store single door embeddings to recognize doors in the future
         :param door_imgs_embeddings:
@@ -115,11 +115,11 @@ class VectorDB:
             self.door_id_collection.add(
                 ids=[unique_id_to_use],  # Must be unique
                 embeddings=[door_pic_embedding.tolist()],
-                metadatas=[{"room_from": room_from, "room_to": room_to, "bbox": bbox}]
+                metadatas=[{"room_from": room_from, "room_to": room_to, "bbox": bbox, "source_snp": source_snp}]
             )
             record_cnt += 1
 
-    def qry_door_img(self, embedding_vector):
+    def qry_door_img(self, embedding_vector, source_snp):
         """
         Query single door embeddings for ID before actual path transition.
         :param embedding_vector:
@@ -132,7 +132,8 @@ class VectorDB:
 
         results = self.door_id_collection.query(
             query_embeddings=[embedding_vector.tolist()],
-            n_results=min(5, self.door_id_collection.count()) # Avoid asking for more items than exist
+            n_results=min(5, self.door_id_collection.count()), # Avoid asking for more items than exist
+            where={"source_snp": source_snp}
         )
 
         qry_results = []
