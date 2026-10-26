@@ -138,7 +138,8 @@ class VectorDB:
             print(" IN ROOM: ", metadata.get('current_room'))
             qry_results.append({
                 'current_room': metadata.get('current_room'),
-                'similarity': similarity
+                'similarity': similarity,
+                'id': id
             })
 
         return qry_results
