@@ -22,6 +22,12 @@ class VectorDB:
             metadata={"hnsw:space": "cosine"}  # Use cosine similarity for search
         )
 
+        # for anchor points - to identify places we've been to before
+        self.anchor_point_collection = self.client.get_or_create_collection(
+            name="anchor_points",
+            metadata={"hnsw:space": "cosine"}  # Use cosine similarity for search
+        )
+
     def reset_database(self):
         """Call this manually to truncate and clear out all debug data cleanly."""
         try:
@@ -87,6 +93,51 @@ class VectorDB:
                 'room_from': metadata.get('room_from'),
                 'room_to': metadata.get('room_to'),
                 'early_or_late': metadata.get('early_or_late'),
+                'similarity': similarity
+            })
+
+        return qry_results
+
+    def store_anchor_point(self, embedding_vector, current_room):
+        unique_id = "ap_" + str(uuid.uuid4())
+        timestamp = datetime.now().isoformat()
+
+        self.anchor_point_collection.add(
+            ids=[unique_id],  # Must be unique
+            embeddings=[embedding_vector.tolist()],
+            metadatas=[{"current_room": current_room}],
+            #documents=["Optional: any text description"]  # 'documents' is also optional for storing related text
+        )
+
+    def qry_anchor_point(self, embedding_vector):
+        # Safeguard: If the collection is empty, querying it will throw an error or return empty lists
+        if self.anchor_point_collection.count() == 0:
+            print("Database is empty. No anchor points to query.")
+            return []
+
+        results = self.anchor_point_collection.query(
+            query_embeddings=[embedding_vector.tolist()],
+            n_results=min(5, self.anchor_point_collection.count()) # Avoid asking for more items than exist
+        )
+
+        qry_results = []
+
+        # Safe unpack check in case Chroma returns empty results structures
+        if not results['ids'] or not results['ids'][0]:
+            return qry_results
+
+        # Chroma returns a list of lists. Index [0] gets the results for our single query vector.
+        # This preserves Chroma's automatic highest-similarity-first sorting!
+        ids = results['ids'][0]
+        distances = results['distances'][0]
+        metadatas = results['metadatas'][0]
+        # The results will be a dictionary containing 'ids', 'distances', and 'metadatas' lists
+        for id, distance, metadata in zip(ids, distances, metadatas):
+            similarity = 1 - distance  # For cosine distance, this gives you cosine similarity
+            print(f"Found similar ANCHOR POINT ID: {id}, Similarity: {similarity:.4f}, Metadata: {metadata}")
+            print(" IN ROOM: ", metadata.get('current_room'))
+            qry_results.append({
+                'current_room': metadata.get('current_room'),
                 'similarity': similarity
             })
 

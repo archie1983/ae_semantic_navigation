@@ -84,6 +84,38 @@ class PathComparator:
 
 		self.vdb.store_doors_imgs(door_imgs_embeddings, room_from, room_to, door_bboxes, source_snp)
 
+	def store_anchor_point(self, data):
+		# Process the images
+		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
+		received_images = received_array.reshape(data['shape'])
+		pil_images = [Image.fromarray(img) for img in received_images]
+
+		current_room = data['current_room']
+
+		# door_imgs_embedding_mean = self.pc.get_mean_path_embedding(pil_images)
+		anchor_embedding_mean = self.pc.get_mean_path_embedding_with_odds_filtered(pil_images)
+
+		self.vdb.store_anchor_point(anchor_embedding_mean, current_room)
+
+	def qry_anchor_point(self, data):
+		# Process the images
+		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])
+		received_images = received_array.reshape(data['shape'])
+		pil_images = [Image.fromarray(img) for img in received_images]
+
+		mean_path_embedding = self.pc.get_mean_path_embedding(pil_images)
+		#anchor_embedding_mean = self.pc.get_mean_path_embedding_with_odds_filtered(pil_images) # Do we want to filter odds out here?
+
+		qry_results = self.vdb.qry_anchor_point(mean_path_embedding)
+
+		# Send the response back
+		response = {
+			'success': True,
+			'qry_results': qry_results
+		}
+
+		return response
+
 	def qry_door_pics_of_transition(self, data):
 		# Process the images
 		received_array = np.frombuffer(data['bytes'], dtype=data['dtype'])

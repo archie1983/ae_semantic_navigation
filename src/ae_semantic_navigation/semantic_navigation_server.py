@@ -61,6 +61,10 @@ class SemanticNavigationServer:
                     response = self.path_comparator.store_door_pics_of_transition(data)
                 elif (data['action'] == 'qry_door_pics_of_transition'):
                     response = self.path_comparator.qry_door_pics_of_transition(data)
+                elif (data['action'] == 'store_anchor_point'):
+                    response = self.path_comparator.store_anchor_point(data)
+                elif (data['action'] == 'qry_anchor_point'):
+                    response = self.path_comparator.qry_anchor_point(data)
                 else:
                     response = None
             elif (data['module'] == 'llm_decisions'):
