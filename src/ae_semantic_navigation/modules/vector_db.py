@@ -205,6 +205,7 @@ class VectorDB:
             print(f"Found similar DOOR image ID: {id}, Similarity: {similarity:.4f}, Metadata: {metadata}")
             print(metadata.get('room_from'), " TO ", metadata.get('room_to'), " bbox: ", metadata.get('bbox'))
             qry_results.append({
+                'id': metadata.get('id'),
                 'room_from': metadata.get('room_from'),
                 'room_to': metadata.get('room_to'),
                 'bbox': metadata.get('bbox'),
